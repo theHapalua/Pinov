@@ -6,6 +6,7 @@
 #include <termios.h>
 #include <string.h>
 #include <signal.h>
+#include "config.c"
 #include "scrctrl.h"
 
 int col;
@@ -14,7 +15,10 @@ int row;
 int main(){
     signal(SIGWINCH,&resizeSignal);
 
-    //Getting Window Size
+	// Reading Configuration File
+    read_config();
+
+    // Getting Window Size
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     col = w.ws_col;
