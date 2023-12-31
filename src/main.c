@@ -6,7 +6,7 @@
 #include <termios.h>
 #include <string.h>
 #include <signal.h>
-#include "config.c"
+#include "config.h"
 #include "scrctrl.h"
 
 int col;
