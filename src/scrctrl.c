@@ -1,22 +1,49 @@
 #include <asm-generic/ioctls.h>
+#include <bits/types/struct_timeval.h>
+#include <sys/select.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <termios.h>
 #include <string.h>
+#include <time.h>
 #include "scrctrl.h"
 
 void resetColor(){
     printf("\x1b[0m");
+    fflush(stdout);
+}
+
+void cursorUp(){
+    printf("\x1b[A");
+    fflush(stdout);
+}
+
+void cursorDown(){
+    printf("\x1b[B");
+    fflush(stdout);
+}
+
+void cursorRight(){
+    printf("\x1b[C");
+    fflush(stdout);
+}
+
+void cursorLeft(){
+    printf("\x1b[D");
+    fflush(stdout);
 }
 
 void cursorHome(){
     printf("\x1b[H");
+    fflush(stdout);
 }
 
 void cleanScreen(){
     printf("\x1b[2J");
+    fflush(stdout);
 }
 
 void updateScreen(char **charBuffer, int **FGColorBuffer, int **BGColorBuffer){
@@ -44,6 +71,7 @@ void updateScreen(char **charBuffer, int **FGColorBuffer, int **BGColorBuffer){
                     }
                     printf("%c",charBuffer[y][x]);
                     resetColor();
+                    fflush(stdout);
                 }
             }
         }
@@ -54,52 +82,48 @@ void updateScreen(char **charBuffer, int **FGColorBuffer, int **BGColorBuffer){
 
 void enableAltScreen(){
     printf("\x1b[?1049h");
+    fflush(stdout);
     return ;
+    
 }
 
 void disableAltScreen(){
     printf("\x1b[?1049l");
+    fflush(stdout);
     return ;
 }
 
 void runScreen(char **charBuffer, int **FGColorBuffer, int **BGColorBuffer){
     enableAltScreen();
     updateScreen(charBuffer, FGColorBuffer, BGColorBuffer);
+    fd_set set;
+    struct timeval timeout;
+    FD_ZERO(&set);
+    FD_SET(STDIN_FILENO, &set);
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 100;
     while(1){
-        char c = getchar();
-        if(c == 'q' || c == 'Q'){
-            break;
-        }else if(c == '\x1b'){
-            //THE ESC OR A KEY WITH ESC IS PRESSED
-            c = getchar();//[
-            c = getchar();//A,B,C,D
-            if(c == 'A'){
-                printf("\x1b[1A");
-            }else if(c == 'B'){
-                printf("\x1b[B");
-            }else if(c == 'C'){
-                printf("\x1b[1C");
-            }else if(c == 'D'){
-                printf("\x1b[1D");
-            }else{
+        char c;read(STDIN_FILENO,&c,1); //c = getchar();
+        if(c == 0x1B){
+            //esc is pressed
+            int ready = select(STDIN_FILENO+1,&set,NULL,NULL,&timeout);
+            if(ready == 0){
                 break;
-            }
-        }else if(c == 'c' || c == 'C'){
-            //change Color
-            for(int y = 0;;y++){
-                if(BGColorBuffer[y] == NULL){
-                    break;
-                }
-                for(int x = 0;;x++){
-                    if(BGColorBuffer[y][x] == 0){
-                        break;
-                    }
-                    if(x%2==0 || y%2==0){
-                        BGColorBuffer[y][x] = 2;
-                    }
+            }else{
+                c = getchar();
+                c = getchar();
+                fflush(stdin);
+                if(c == 'A'){
+                    cursorUp();
+                }else if(c == 'B'){
+                    cursorDown();
+                }else if(c == 'C'){
+                    cursorRight();
+                }else if(c == 'D'){
+                    cursorLeft();
                 }
             }
-            updateScreen(charBuffer,FGColorBuffer,BGColorBuffer);
+            
         }
     }
     disableAltScreen();

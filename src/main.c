@@ -55,16 +55,24 @@ int main(){
     tcgetattr(1, &term);
     term.c_lflag &= -ECHO;//Blocking the echo of normal characters
     term.c_lflag &= -ECHOCTL;//Blocking the echo of control characters
+    term.c_lflag &= -ICANON;//Blocking Canonical Mode
     tcsetattr(1, TCSANOW, &term);
 
     runScreen(charBuffer,FGColorBuffer,BGColorBuffer);
 
-
+    //Clearing Buffers
     free(charBuffer);
     free(FGColorBuffer);
     free(BGColorBuffer);
 
-    
+    //Turning echoing on in stdin
+    term.c_lflag |= ECHO;
+    term.c_lflag |= ECHOCTL;
+    term.c_lflag |= ICANON;
+    tcsetattr(1, TCSANOW, &term);
 
     return 0;
 }
+
+      
+      
