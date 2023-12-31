@@ -5,11 +5,15 @@
 #include <unistd.h>
 #include <termios.h>
 #include <string.h>
+#include "config.h"
 #include "scrctrl.h"
 
 int main(){
 
-    //Getting Window Size
+	// Reading Configuration File
+    read_config();
+
+    // Getting Window Size
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
