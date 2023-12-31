@@ -9,7 +9,16 @@
 #include <termios.h>
 #include <string.h>
 #include <time.h>
+#include <signal.h>
 #include "scrctrl.h"
+
+extern int col;
+extern int row;
+
+void resizeSignal(){
+    resizeScreen(row,col);
+    return ;
+}
 
 void resetColor(){
     printf("\x1b[0m");
@@ -89,6 +98,22 @@ void enableAltScreen(){
 
 void disableAltScreen(){
     printf("\x1b[?1049l");
+    fflush(stdout);
+    return ;
+}
+
+void visibleCursor(){
+    printf("\x1b[?25h");
+    fflush(stdout);
+}
+
+void invisibleCursor(){
+    printf("\x1b[?25l");
+    fflush(stdout);
+}
+
+void resizeScreen(int row, int col){
+    printf("\x1b[8;%d;%dt",row,col);
     fflush(stdout);
     return ;
 }

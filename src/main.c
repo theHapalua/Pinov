@@ -5,49 +5,65 @@
 #include <unistd.h>
 #include <termios.h>
 #include <string.h>
+#include <signal.h>
 #include "scrctrl.h"
 
+int col;
+int row;
+
 int main(){
+    signal(SIGWINCH,&resizeSignal);
 
     //Getting Window Size
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    col = w.ws_col;
+    row = w.ws_row;
+
+    //Default Window Size
+    if(col < DEFAULT_COLUMN){
+        col = DEFAULT_COLUMN;
+    }
+    if(row < DEFAULT_ROW){
+        row = DEFAULT_ROW;
+    }
+    resizeScreen(row, col);
 
     // Screen Character Buffer Definition
-    char **charBuffer = (char **)calloc(w.ws_row+1,sizeof(char *));
-    for(int i = 0;i < w.ws_row;i++){
-        char *line;line = (char *)calloc(w.ws_col+1,sizeof(char));
-        memset(line,' ',w.ws_col);
-        line[w.ws_col] = '\0';
+    char **charBuffer = (char **)calloc(row+1,sizeof(char *));
+    for(int i = 0;i < row;i++){
+        char *line;line = (char *)calloc(col+1,sizeof(char));
+        memset(line,' ',col);
+        line[col] = '\0';
         charBuffer[i] = line;
 
     }
-    charBuffer[w.ws_row] = NULL;
+    charBuffer[row] = NULL;
 
     //Foreground Color Buffer Definition
     int **FGColorBuffer;
-    FGColorBuffer = (int **)calloc(w.ws_row + 1, sizeof(int *));
-    for (int i = 0; i < w.ws_row; i++) {
-        int *line = (int *)calloc(w.ws_col + 1, sizeof(int));
-        for (int j = 0; j < w.ws_col; j++) {
+    FGColorBuffer = (int **)calloc(row + 1, sizeof(int *));
+    for (int i = 0; i < row; i++) {
+        int *line = (int *)calloc(col + 1, sizeof(int));
+        for (int j = 0; j < col; j++) {
             line[j] = 1;
         }
-        line[w.ws_col] = 0;
+        line[col] = 0;
         FGColorBuffer[i] = line;
     }
-    FGColorBuffer[w.ws_row] = NULL;
+    FGColorBuffer[row] = NULL;
 
     //Background Color Buffer Definition
-    int **BGColorBuffer; BGColorBuffer = (int **)calloc(w.ws_row+1,sizeof(int *));
-    for(int i=0;i < w.ws_row;i++){
-        int *line = (int *)calloc(w.ws_col+1,sizeof(int *));
-        for(int j = 0; j < w.ws_col;j++){
+    int **BGColorBuffer; BGColorBuffer = (int **)calloc(row+1,sizeof(int *));
+    for(int i=0;i < row;i++){
+        int *line = (int *)calloc(col+1,sizeof(int *));
+        for(int j = 0; j < col;j++){
             line[j] = 1;
         }
-        line[w.ws_col] = 0;
+        line[col] = 0;
         BGColorBuffer[i] = line;
     }
-    BGColorBuffer[w.ws_row] = NULL;
+    BGColorBuffer[row] = NULL;
 
 
     //Turning echoing off in stdin
@@ -71,6 +87,7 @@ int main(){
     term.c_lflag |= ICANON;
     tcsetattr(1, TCSANOW, &term);
 
+    system("clear");
     return 0;
 }
 
