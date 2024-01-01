@@ -6,6 +6,7 @@ configuration conf = {
 };
 
 char* strip_string(char* str_to_strip) {
+	
 	char* stripped_str = calloc(LINE_SIZE,sizeof(char));
 	
 	int i = 0;
@@ -25,19 +26,34 @@ char* strip_string(char* str_to_strip) {
 	stripped_str[k] = '\0';
 	
 	return stripped_str;
+	
 }
 
 bool set_attribute(char* buffer, char* value, enum attribute_type att_type) {
 	
 	void* real_value;
-	
+
 	if (att_type == INT_ATTR) {
-		*((int*)real_value) = atoi(value);
-		/* TODO: check atoi errors*/
+		int* int_ptr = malloc(sizeof(int));
+		if (int_ptr == NULL) {
+			return EXIT_FAILURE;
+		}
+		*int_ptr = atoi(value);
+		real_value = int_ptr;
 	} else if (att_type == CHAR_ATTR) {
-		*((char*) real_value) = value[0];
+		char* char_ptr = malloc(sizeof(char));
+		if (char_ptr == NULL) {
+			return EXIT_FAILURE;
+		}
+		*char_ptr = value[0];
+		real_value = char_ptr;
 	} else if (att_type == BOOL_ATTR) {
-		*((bool*) real_value) = (value == "true" || value[0] == '1') ? 1 : 0;
+		bool* bool_ptr = malloc(sizeof(bool));
+		if (bool_ptr == NULL) {
+			return EXIT_FAILURE;
+		}
+		*bool_ptr = (strcmp(value, "true") == 0 || value[0] == '1') ? true : false;
+		real_value = bool_ptr;
 	} else {
 		return EXIT_FAILURE;
 	}

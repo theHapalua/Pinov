@@ -137,7 +137,7 @@ void runScreen(char **charBuffer, int **FGColorBuffer, int **BGColorBuffer){
             }else{
                 c = getchar();
                 c = getchar();
-                fflush(stdin);
+                //fflush(stdin);
                 if(c == 'A'){
                     cursorUp();
                 }else if(c == 'B'){
