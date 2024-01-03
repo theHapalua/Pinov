@@ -39,10 +39,10 @@ static char* strip_string(char* str_to_strip, char char_to_strip) {
 	int j = 0;
 	int k = 0;
 	int stripped_i = 0;
-	while(str_to_strip[i] == char_to_strip) i++; // first non-empty index
+	while(str_to_strip[i] == char_to_strip) i++; // first not-expected char index
 	while(str_to_strip[j] != '\0') j++; // index of '\0'
 	j--;
-	while(str_to_strip[j] == char_to_strip) j--; // last non-empty index
+	while(str_to_strip[j] == char_to_strip) j--; // last non-expected char index
 	
 	while(i<=j) {
 		stripped_str[k] = str_to_strip[i];
