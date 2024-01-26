@@ -665,10 +665,6 @@ void runScreen(){
         }
     }
     disableAltScreen();
-    //printf("%d,%d\n",currentCursorCol,col);
-    if(checkval){
-        printf("you are in \n");
-    }
     return ;
 }
 

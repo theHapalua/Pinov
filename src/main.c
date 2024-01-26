@@ -29,7 +29,7 @@ int main(){
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     setCol(w.ws_col);
     setRow(w.ws_row);
-
+    /*
     //Default Window Size
     if(col < DEFAULT_COLUMN){
         col = DEFAULT_COLUMN;
@@ -38,6 +38,7 @@ int main(){
         row = DEFAULT_ROW;
     }
     resizeScreen(row, col);
+    */
     
     
 
