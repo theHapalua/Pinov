@@ -9,11 +9,14 @@
 #include "config.h"
 #include "scrctrl.h"
 
-int col;
-int row;
+extern int col;
+extern int row;
+extern char **screenCharBuffer;
+extern int **FGColorBuffer;
+extern int **BGColorBuffer;
 
 int main(){
-    signal(SIGWINCH,&resizeSignal);
+    //signal(SIGWINCH,&resizeSignal);
 
 	// Reading Configuration File
     read_config();
@@ -21,9 +24,10 @@ int main(){
     // Getting Window Size
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    col = w.ws_col;
-    row = w.ws_row;
+    setCol(w.ws_col);
+    setRow(w.ws_row);
 
+    /*
     //Default Window Size
     if(col < DEFAULT_COLUMN){
         col = DEFAULT_COLUMN;
@@ -32,42 +36,52 @@ int main(){
         row = DEFAULT_ROW;
     }
     resizeScreen(row, col);
+    */
+    
 
     // Screen Character Buffer Definition
-    char **charBuffer = (char **)calloc(row+1,sizeof(char *));
+    mallocCharBuffer(row,col);
+    char **tmpCharBuffer = (char **)calloc(row+1,sizeof(char *));
     for(int i = 0;i < row;i++){
         char *line;line = (char *)calloc(col+1,sizeof(char));
         memset(line,' ',col);
         line[col] = '\0';
-        charBuffer[i] = line;
+        tmpCharBuffer[i] = line;
 
     }
-    charBuffer[row] = NULL;
+    tmpCharBuffer[row] = NULL;
+    setCharBuffer(tmpCharBuffer);
+    free(tmpCharBuffer);
 
     //Foreground Color Buffer Definition
-    int **FGColorBuffer;
-    FGColorBuffer = (int **)calloc(row + 1, sizeof(int *));
+    mallocCharBuffer(row,col);
+    int ** tmpFGColorBuffer = (int **)calloc(row + 1, sizeof(int *));
     for (int i = 0; i < row; i++) {
         int *line = (int *)calloc(col + 1, sizeof(int));
         for (int j = 0; j < col; j++) {
             line[j] = 1;
         }
         line[col] = 0;
-        FGColorBuffer[i] = line;
+        tmpFGColorBuffer[i] = line;
     }
-    FGColorBuffer[row] = NULL;
+    tmpFGColorBuffer[row] = NULL;
+    setFGColorBuffer(tmpFGColorBuffer);
+    //free(tmpFGColorBuffer);
 
     //Background Color Buffer Definition
-    int **BGColorBuffer; BGColorBuffer = (int **)calloc(row+1,sizeof(int *));
+    mallocBGColorBuffer(row,col);
+    int **tmpBGColorBuffer = (int **)calloc(row+1,sizeof(int *));
     for(int i=0;i < row;i++){
         int *line = (int *)calloc(col+1,sizeof(int *));
         for(int j = 0; j < col;j++){
             line[j] = 1;
         }
         line[col] = 0;
-        BGColorBuffer[i] = line;
+        tmpBGColorBuffer[i] = line;
     }
-    BGColorBuffer[row] = NULL;
+    tmpBGColorBuffer[row] = NULL;
+    setBGColorBuffer(tmpBGColorBuffer);
+    //free(tmpBGColorBuffer);
 
 
     //Turning echoing off in stdin
@@ -78,20 +92,22 @@ int main(){
     term.c_lflag &= -ICANON;//Blocking Canonical Mode
     tcsetattr(1, TCSANOW, &term);
 
-    runScreen(charBuffer,FGColorBuffer,BGColorBuffer);
+    //addRows(FGColorBuffer, BGColorBuffer, 1);
+    
+    mallocTextBuffer();
+    runScreen();
+    //printf("%c\n",getCharBuffer(0, 0));
+    int y = 0;
+    int x = 0;
+    //printf("%c : %d : %d",screenCharBuffer[y][x],FGColorBuffer[y][x],BGColorBuffer[y][x]);
 
     //Clearing Buffers
-    free(charBuffer);
-    free(FGColorBuffer);
-    free(BGColorBuffer);
 
     //Turning echoing on in stdin
     term.c_lflag |= ECHO;
     term.c_lflag |= ECHOCTL;
     term.c_lflag |= ICANON;
     tcsetattr(1, TCSANOW, &term);
-
-    system("clear");
     return 0;
 }
 
